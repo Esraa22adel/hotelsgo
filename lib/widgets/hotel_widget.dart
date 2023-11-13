@@ -10,12 +10,27 @@ class HotelWidget extends StatefulWidget {
   State<HotelWidget> createState() => _HotelWidgetState();
 }
 
-class _HotelWidgetState extends State<HotelWidget> {
+class _HotelWidgetState extends State<HotelWidget>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _opacityTween;
+
   @override
   void initState() {
     super.initState();
     // Fetch hotels when the widget is initialized
     Provider.of<HotelProvider>(context, listen: false).fetchHotels();
+    _controller = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: 2),
+    );
+    _opacityTween = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(_controller);
+
+    // Start the animation
+    _controller.forward();
   }
 
   @override
@@ -37,7 +52,7 @@ class _HotelWidgetState extends State<HotelWidget> {
               child: Container(
                 color: Colors.white,
                 child: ClipRRect(
-                  borderRadius: const BorderRadius.all(Radius.circular(16.0)),
+                  borderRadius: const BorderRadius.all(Radius.circular(8.0)),
                   child: Column(
                     children: [
                       Stack(
@@ -46,10 +61,17 @@ class _HotelWidgetState extends State<HotelWidget> {
                             children: <Widget>[
                               AspectRatio(
                                 aspectRatio: 2,
-                                child: Image.network(
-                                  hotel.image as String,
-                                  fit: BoxFit.cover,
-                                ),
+                                child: AnimatedBuilder(
+                                    animation: _controller,
+                                    builder: (context, child) {
+                                      return Opacity(
+                                        opacity: _opacityTween.value,
+                                        child: Image.network(
+                                          hotel.image as String,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      );
+                                    }),
                               ),
                               Container(
                                 child: Row(
